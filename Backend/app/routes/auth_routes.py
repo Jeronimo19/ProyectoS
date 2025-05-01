@@ -2,20 +2,22 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from app.database import db
 from app.utils.auth import verify_password, create_access_token
+from datetime import timedelta
 
-router = APIRouter()
+auth_router = APIRouter()
 
-@router.post("/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    # Buscar usuario por nombre de usuario
-    usuario = db["usuarios"].find_one({"username": form_data.username})
-    if not usuario:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuario no encontrado")
+@auth_router.post("/login")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = await db["users"].find_one({"email": form_data.username})
+    if not user:
+        raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
-    # Verificar contraseña
-    if not verify_password(form_data.password, usuario["password"]):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Contraseña incorrecta")
+    if not verify_password(form_data.password, user["password"]):
+        raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
-    # Generar token JWT
-    token = create_access_token({"sub": usuario["username"]})
-    return {"access_token": token, "token_type": "bearer"}
+    token_data = {"sub": str(user["_id"]), "email": user["email"]}
+    access_token = create_access_token(
+        data=token_data, expires_delta=timedelta(minutes=60)
+    )
+
+    return {"access_token": access_token, "token_type": "bearer"}
