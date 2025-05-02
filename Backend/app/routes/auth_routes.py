@@ -8,7 +8,8 @@ auth_router = APIRouter()
 
 @auth_router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = await db["users"].find_one({"email": form_data.username})
+    user = await db["usuarios"].find_one({"email": form_data.username})
+
     if not user:
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
@@ -19,5 +20,4 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     access_token = create_access_token(
         data=token_data, expires_delta=timedelta(minutes=60)
     )
-
     return {"access_token": access_token, "token_type": "bearer"}

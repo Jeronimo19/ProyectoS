@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.routes.user_routes import router as user_router
 from app.routes.inspection_routes import router as inspection_router
-from routes.auth_routes import auth_router
+from app.routes.auth_routes import auth_router
 
 
 app = FastAPI()
