@@ -8,6 +8,9 @@ auth_router = APIRouter()
 
 @auth_router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    if db is None:
+        raise HTTPException(status_code=500, detail="No se pudo conectar a la base de datos")
+
     user = await db["usuarios"].find_one({"email": form_data.username})
 
     if not user:
